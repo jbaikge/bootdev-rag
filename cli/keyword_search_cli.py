@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
+
+from lib.keyword_search import search_command
+
+
+def title_search(query: str) -> list:
+    with open("data/movies.json") as f:
+        data = json.load(f)
+    found = []
+    for movie in data["movies"]:
+        if query in movie["title"]:
+            found.append(movie)
+
+    return found
 
 
 def main() -> None:
@@ -25,7 +39,9 @@ def main() -> None:
     match args.command:
         case "search":
             print(f"Searching for: {args.query}")
-            pass
+            results = search_command(args.query)
+            for i, movie in enumerate(results, 1):
+                print(f"{i}. {movie['title']}")
         case _:
             parser.print_help()
 
