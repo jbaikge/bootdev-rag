@@ -11,7 +11,7 @@ def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     movies = load_movies()
     results = []
     for movie in movies:
-        if query in clean(movie["title"]):
+        if match(query, clean(movie["title"])):
             results.append(movie)
             if len(results) >= limit:
                 break
@@ -26,5 +26,17 @@ def depunct(s: str) -> str:
     return s.translate(translation_table)
 
 
-def clean(s: str) -> str:
-    return depunct(lower(s))
+def tokenize(s: str) -> list[str]:
+    return s.split(" ")
+
+
+def clean(s: str) -> list[str]:
+    return tokenize(depunct(lower(s)))
+
+
+def match(query: list[str], against: list[str]) -> bool:
+    for a in against:
+        for q in query:
+            if q in a:
+                return True
+    return False
