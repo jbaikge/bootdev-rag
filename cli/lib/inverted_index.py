@@ -1,4 +1,5 @@
 import collections
+import math
 import os
 import os.path
 import pickle
@@ -44,6 +45,27 @@ class InvertedIndex:
             return []
 
         return self.index[lower_term]
+
+    def get_idf(self, term: str) -> float:
+        """
+        Inverse document frequency measures how many documents in the dataset
+        contain a term, then converts it to a number where more rare terms
+        rank higher.
+        """
+
+        tokens = clean(term)
+
+        if len(tokens) == 0:
+            raise RuntimeError(f"empty term after cleaning: {term}")
+
+        if len(tokens) > 1:
+            raise RuntimeError(f"too many tokens in term: {term}")
+
+        matches = 0
+        if tokens[0] in self.index:
+            matches = len(self.index[tokens[0]])
+
+        return math.log((len(self.docmap) + 1) / (matches + 1))
 
     def get_tf(self, doc_id: int, term: str) -> int:
         """

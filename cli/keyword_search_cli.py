@@ -4,6 +4,7 @@ import argparse
 import json
 
 from lib.keyword_search import search_command
+from lib.idf_search import idf_command
 from lib.index_builder import build_command
 from lib.term_search import term_command
 
@@ -56,11 +57,24 @@ def main() -> None:
         help="Search term",
     )
 
+    idf_parser = subparsers.add_parser(
+        "idf",
+        help="Inverse Document Frequency",
+    )
+    idf_parser.add_argument(
+        "term",
+        type=str,
+        help="Search term",
+    )
+
     args = parser.parse_args()
 
     match args.command:
         case "build":
             build_command()
+        case "idf":
+            idf = idf_command(args.term)
+            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
         case "search":
             print(f"Searching for: {args.query}")
             results = search_command(args.query)
