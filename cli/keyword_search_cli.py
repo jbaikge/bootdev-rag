@@ -4,6 +4,7 @@ import argparse
 import json
 
 from lib.keyword_search import search_command
+from lib.index_builder import build_command
 
 
 def title_search(query: str) -> list:
@@ -34,9 +35,16 @@ def main() -> None:
         help="Search query",
     )
 
+    subparsers.add_parser(
+        "build",
+        help="Build search index",
+    )
+
     args = parser.parse_args()
 
     match args.command:
+        case "build":
+            build_command()
         case "search":
             print(f"Searching for: {args.query}")
             results = search_command(args.query)
