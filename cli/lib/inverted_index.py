@@ -68,3 +68,22 @@ class InvertedIndex:
         docmap_file = os.path.join(cache_dir, "docmap.pkl")
         with open(docmap_file, "wb") as f:
             pickle.dump(self.docmap, f)
+
+    def load(self, root_dir: str) -> None:
+        cache_dir = os.path.join(root_dir, "cache")
+        if not os.path.exists(cache_dir):
+            raise RuntimeError(f"cache dir does not exist: {cache_dir}")
+
+        index_file = os.path.join(cache_dir, "index.pkl")
+        if not os.path.exists(index_file):
+            raise RuntimeError(f"index file does not exist: {index_file}")
+
+        with open(index_file, "rb") as f:
+            self.index = pickle.load(f)
+
+        docmap_file = os.path.join(cache_dir, "docmap.pkl")
+        if not os.path.exists(docmap_file):
+            raise RuntimeError(f"docmap file does not exist: {docmap_file}")
+
+        with open(docmap_file, "rb") as f:
+            self.docmap = pickle.load(f)

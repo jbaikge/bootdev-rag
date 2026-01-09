@@ -7,6 +7,3 @@ def build_command() -> None:
     index = InvertedIndex()
     index.build(movies)
     index.save(PROJECT_ROOT)
-
-    docs = index.get_documents("merida")
-    print(f"First document for token 'merida' = {docs[0]}")
