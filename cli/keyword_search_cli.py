@@ -5,6 +5,7 @@ import json
 
 from lib.keyword_search import search_command
 from lib.index_builder import build_command
+from lib.term_search import term_command
 
 
 def title_search(query: str) -> list:
@@ -40,6 +41,21 @@ def main() -> None:
         help="Build search index",
     )
 
+    tf_parser = subparsers.add_parser(
+        "tf",
+        help="Term frequency",
+    )
+    tf_parser.add_argument(
+        "doc_id",
+        type=int,
+        help="Document ID",
+    )
+    tf_parser.add_argument(
+        "term",
+        type=str,
+        help="Search term",
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -50,6 +66,8 @@ def main() -> None:
             results = search_command(args.query)
             for i, movie in enumerate(results, 1):
                 print(f"{i}. {movie['title']}")
+        case "tf":
+            print(term_command(args.doc_id, args.term))
         case _:
             parser.print_help()
 

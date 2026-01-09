@@ -23,7 +23,12 @@ def tokenize(s: str) -> list[str]:
 
 
 def unstop(tokens: list[str]) -> list[str]:
-    return list(set(tokens).difference(stop_words))
+    cleaned = []
+    for token in tokens:
+        if token in stop_words:
+            continue
+        cleaned.append(token)
+    return cleaned
 
 
 def stem(tokens: list[str]) -> list[str]:
