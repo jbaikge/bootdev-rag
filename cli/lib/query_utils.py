@@ -5,7 +5,11 @@ from nltk.stem import PorterStemmer
 from .search_utils import load_stopwords
 
 
-translation_table = str.maketrans("", "", string.punctuation)
+punctuation_table = str.maketrans("", "", string.punctuation + "\u2019")
+whitespace_table = str.maketrans(
+    string.whitespace,
+    " " * len(string.whitespace),
+)
 stop_words = load_stopwords()
 stemmer = PorterStemmer()
 
@@ -14,8 +18,12 @@ def lower(s: str) -> str:
     return s.lower()
 
 
+def whitespace(s: str) -> str:
+    return s.translate(whitespace_table)
+
+
 def depunct(s: str) -> str:
-    return s.translate(translation_table)
+    return s.translate(punctuation_table)
 
 
 def tokenize(s: str) -> list[str]:
@@ -38,7 +46,7 @@ def stem(tokens: list[str]) -> list[str]:
 
 
 def clean(s: str) -> list[str]:
-    return stem(unstop(tokenize(depunct(lower(s)))))
+    return stem(unstop(tokenize(whitespace(depunct(lower(s))))))
 
 
 def match(query: list[str], against: list[str]) -> bool:
