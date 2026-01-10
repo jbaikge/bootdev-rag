@@ -8,6 +8,7 @@ from lib.idf_search import idf_command
 from lib.index_builder import build_command
 from lib.term_search import term_command
 from lib.tfidf_search import tfidf_command
+from lib.bm25idf_search import bm25idf_command
 
 
 def title_search(query: str) -> list:
@@ -83,9 +84,22 @@ def main() -> None:
         help="Search term",
     )
 
+    bm25idf_parser = subparsers.add_parser(
+        "bm25idf",
+        help="Get BM25 IDF score for a given term",
+    )
+    bm25idf_parser.add_argument(
+        "term",
+        type=str,
+        help="Term to get BM25 IDF score for",
+    )
+
     args = parser.parse_args()
 
     match args.command:
+        case "bm25idf":
+            bm25idf = bm25idf_command(args.term)
+            print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
         case "build":
             build_command()
         case "idf":

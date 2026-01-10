@@ -46,6 +46,27 @@ class InvertedIndex:
 
         return self.index[lower_term]
 
+    def get_bm25_idf(self, term: str) -> float:
+        """
+        Calculate the BM25 IDF score from the supplied term
+        """
+
+        tokens = clean(term)
+
+        if len(tokens) == 0:
+            raise RuntimeError(f"empty term after cleaning: {term}")
+
+        if len(tokens) > 1:
+            raise RuntimeError(f"too many tokens in term: {term}")
+
+        docs = 0
+        if tokens[0] in self.index:
+            docs = len(self.index[tokens[0]])
+
+        total = len(self.docmap)
+
+        return math.log((total - docs + 0.5) / (docs + 0.5) + 1)
+
     def get_idf(self, term: str) -> float:
         """
         Inverse document frequency measures how many documents in the dataset
