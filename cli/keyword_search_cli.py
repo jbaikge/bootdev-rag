@@ -7,6 +7,7 @@ from lib.keyword_search import search_command
 from lib.idf_search import idf_command
 from lib.index_builder import build_command
 from lib.term_search import term_command
+from lib.tfidf_search import tfidf_command
 
 
 def title_search(query: str) -> list:
@@ -67,6 +68,21 @@ def main() -> None:
         help="Search term",
     )
 
+    tfidf_parser = subparsers.add_parser(
+        "tfidf",
+        help="Term Frequency with Inverse Document Frequency",
+    )
+    tfidf_parser.add_argument(
+        "doc_id",
+        type=int,
+        help="Document ID",
+    )
+    tfidf_parser.add_argument(
+        "term",
+        type=str,
+        help="Search term",
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -82,6 +98,12 @@ def main() -> None:
                 print(f"{i}. {movie['title']}")
         case "tf":
             print(term_command(args.doc_id, args.term))
+        case "tfidf":
+            tf_idf = tfidf_command(args.doc_id, args.term)
+            print(
+                "TF-IDF score of '%s' in document '%d': %0.2f" %
+                (args.term, args.doc_id, tf_idf)
+            )
         case _:
             parser.print_help()
 
