@@ -3,12 +3,14 @@
 import argparse
 import json
 
+from lib.constants import BM25_K1
 from lib.keyword_search import search_command
 from lib.idf_search import idf_command
 from lib.index_builder import build_command
 from lib.term_search import term_command
 from lib.tfidf_search import tfidf_command
 from lib.bm25idf_search import bm25idf_command
+from lib.bm25tf_search import bm25_tf_command
 
 
 def title_search(query: str) -> list:
@@ -94,12 +96,41 @@ def main() -> None:
         help="Term to get BM25 IDF score for",
     )
 
+    bm25_tf_parser = subparsers.add_parser(
+        "bm25tf",
+        help="Get BM25 TF score for a given document ID and term",
+    )
+    bm25_tf_parser.add_argument(
+        "doc_id",
+        type=int,
+        help="Document ID",
+    )
+    bm25_tf_parser.add_argument(
+        "term",
+        type=str,
+        help="Term to get BM25 TF score for",
+    )
+    bm25_tf_parser.add_argument(
+        "k1",
+        type=float,
+        nargs='?',
+        default=BM25_K1,
+        help="Tunable BM25 K1 parameter",
+    )
+
     args = parser.parse_args()
 
     match args.command:
         case "bm25idf":
             bm25idf = bm25idf_command(args.term)
             print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
+        case "bm25tf":
+            bm25tf = bm25_tf_command(args.doc_id, args.term, args.k1)
+            print(args.doc_id, args.term, args.k1)
+            print(
+                "BM25 TF score of '%s' in document '%d': %0.2f" %
+                (args.term, args.doc_id, bm25tf)
+            )
         case "build":
             build_command()
         case "idf":

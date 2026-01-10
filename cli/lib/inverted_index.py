@@ -4,6 +4,7 @@ import os
 import os.path
 import pickle
 
+from .constants import BM25_K1
 from .query_utils import clean
 
 
@@ -25,6 +26,9 @@ class InvertedIndex:
         """
 
         tokens = clean(text)
+        if doc_id == 1:
+            print(tokens)
+            print(collections.Counter(tokens))
         self.term_frequencies[doc_id] = collections.Counter(tokens)
 
         for token in set(tokens):
@@ -66,6 +70,15 @@ class InvertedIndex:
         total = len(self.docmap)
 
         return math.log((total - docs + 0.5) / (docs + 0.5) + 1)
+
+    def get_bm25_tf(self, doc_id: int, term: str, k1: float = BM25_K1) -> float:
+        """
+        Applies a saturation formula to the existing Term Frequency (TF)
+        """
+
+        tf = self.get_tf(doc_id, term)
+        print(doc_id, term, k1, tf)
+        return (tf * (k1 + 1)) / (tf + k1)
 
     def get_idf(self, term: str) -> float:
         """
