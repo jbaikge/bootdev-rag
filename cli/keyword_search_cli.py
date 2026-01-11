@@ -3,7 +3,7 @@
 import argparse
 import json
 
-from lib.constants import BM25_K1
+from lib.constants import BM25_B, BM25_K1
 from lib.keyword_search import search_command
 from lib.idf_search import idf_command
 from lib.index_builder import build_command
@@ -117,6 +117,13 @@ def main() -> None:
         default=BM25_K1,
         help="Tunable BM25 K1 parameter",
     )
+    bm25_tf_parser.add_argument(
+        "b",
+        type=float,
+        nargs='?',
+        default=BM25_B,
+        help="Tunable BM25 B parameter",
+    )
 
     args = parser.parse_args()
 
@@ -125,8 +132,7 @@ def main() -> None:
             bm25idf = bm25idf_command(args.term)
             print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
         case "bm25tf":
-            bm25tf = bm25_tf_command(args.doc_id, args.term, args.k1)
-            print(args.doc_id, args.term, args.k1)
+            bm25tf = bm25_tf_command(args.doc_id, args.term, args.k1, args.b)
             print(
                 "BM25 TF score of '%s' in document '%d': %0.2f" %
                 (args.term, args.doc_id, bm25tf)

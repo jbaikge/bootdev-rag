@@ -4,8 +4,9 @@ import os
 import os.path
 import pickle
 
-from .constants import BM25_K1
+from .constants import BM25_B, BM25_K1
 from .query_utils import clean
+from .search_utils import CACHE_PATH
 
 
 class InvertedIndex:
@@ -17,8 +18,16 @@ class InvertedIndex:
         # Dictionary mapping document IDs to their full document objects
         self.docmap = {}
 
+        # Dictionary mapping document IDs to their document lengths
+        self.doc_lengths = {}
+
         # Dictionary mapping document IDs to Counter objects
         self.term_frequencies = {}
+
+        self.index_file = "index.pkl"
+        self.docmap_file = "docmap.pkl"
+        self.term_freq_file = "term_frequencies.pkl"
+        self.doc_lengths_file = "doc_lengths.pkl"
 
     def __add_document(self, doc_id: int, text: str) -> None:
         """
@@ -26,15 +35,28 @@ class InvertedIndex:
         """
 
         tokens = clean(text)
-        if doc_id == 1:
-            print(tokens)
-            print(collections.Counter(tokens))
         self.term_frequencies[doc_id] = collections.Counter(tokens)
+        self.doc_lengths[doc_id] = len(tokens)
 
         for token in set(tokens):
             if token not in self.index:
                 self.index[token] = []
             self.index[token].append(doc_id)
+
+    def __get_avg_doc_length(self) -> float:
+        """
+        Calculate the average document length of all documents
+        """
+
+        num_docs = len(self.doc_lengths)
+        if num_docs == 0:
+            return 0.0
+
+        total = 0
+        for id in self.doc_lengths:
+            total += self.doc_lengths[id]
+
+        return total / num_docs
 
     def get_documents(self, term: str) -> list[int]:
         """
@@ -71,14 +93,22 @@ class InvertedIndex:
 
         return math.log((total - docs + 0.5) / (docs + 0.5) + 1)
 
-    def get_bm25_tf(self, doc_id: int, term: str, k1: float = BM25_K1) -> float:
+    def get_bm25_tf(
+        self,
+        doc_id: int,
+        term: str,
+        k1: float = BM25_K1,
+        b: float = BM25_B,
+    ) -> float:
         """
         Applies a saturation formula to the existing Term Frequency (TF)
         """
 
+        doc_length = self.doc_lengths[doc_id]
+        avg_doc_length = self.__get_avg_doc_length()
+        length_norm = 1 - b + b * (doc_length / avg_doc_length)
         tf = self.get_tf(doc_id, term)
-        print(doc_id, term, k1, tf)
-        return (tf * (k1 + 1)) / (tf + k1)
+        return (tf * (k1 + 1)) / (tf + k1 * length_norm)
 
     def get_idf(self, term: str) -> float:
         """
@@ -137,51 +167,38 @@ class InvertedIndex:
             self.__add_document(m["id"], text)
             self.docmap[m["id"]] = m
 
-    def save(self, root_dir: str) -> None:
+    def save(self, dir: str = CACHE_PATH) -> None:
         """
         Saves the index and the docmap to a cache directory inside of root_dir
         in pickle format.
         """
 
-        cache_dir = os.path.join(root_dir, "cache")
-        os.makedirs(cache_dir, exist_ok=True)
+        os.makedirs(dir, exist_ok=True)
 
-        index_file = os.path.join(cache_dir, "index.pkl")
-        with open(index_file, "wb") as f:
+        with open(os.path.join(dir, self.index_file), "wb") as f:
             pickle.dump(self.index, f)
 
-        docmap_file = os.path.join(cache_dir, "docmap.pkl")
-        with open(docmap_file, "wb") as f:
+        with open(os.path.join(dir, self.docmap_file), "wb") as f:
             pickle.dump(self.docmap, f)
 
-        term_freq_file = os.path.join(cache_dir, "term_frequencies.pkl")
-        with open(term_freq_file, "wb") as f:
+        with open(os.path.join(dir, self.term_freq_file), "wb") as f:
             pickle.dump(self.term_frequencies, f)
 
-    def load(self, root_dir: str) -> None:
-        cache_dir = os.path.join(root_dir, "cache")
-        if not os.path.exists(cache_dir):
-            raise RuntimeError(f"cache dir does not exist: {cache_dir}")
+        with open(os.path.join(dir, self.doc_lengths_file), "wb") as f:
+            pickle.dump(self.doc_lengths, f)
 
-        index_file = os.path.join(cache_dir, "index.pkl")
-        if not os.path.exists(index_file):
-            raise RuntimeError(f"index file does not exist: {index_file}")
+    def load(self, dir: str = CACHE_PATH) -> None:
+        if not os.path.exists(dir):
+            raise RuntimeError(f"cache dir does not exist: {dir}")
 
-        with open(index_file, "rb") as f:
+        with open(os.path.join(dir, self.index_file), "rb") as f:
             self.index = pickle.load(f)
 
-        docmap_file = os.path.join(cache_dir, "docmap.pkl")
-        if not os.path.exists(docmap_file):
-            raise RuntimeError(f"docmap file does not exist: {docmap_file}")
-
-        with open(docmap_file, "rb") as f:
+        with open(os.path.join(dir, self.docmap_file), "rb") as f:
             self.docmap = pickle.load(f)
 
-        term_freq_file = os.path.join(cache_dir, "term_frequencies.pkl")
-        if not os.path.exists(term_freq_file):
-            raise RuntimeError(
-                f"term frequencies file does not exist: {term_freq_file}"
-            )
-
-        with open(term_freq_file, "rb") as f:
+        with open(os.path.join(dir, self.term_freq_file), "rb") as f:
             self.term_frequencies = pickle.load(f)
+
+        with open(os.path.join(dir, self.doc_lengths_file), "rb") as f:
+            self.doc_lengths = pickle.load(f)

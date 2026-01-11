@@ -1,11 +1,11 @@
 from .inverted_index import InvertedIndex
 from .query_utils import clean
-from .search_utils import DEFAULT_SEARCH_LIMIT, PROJECT_ROOT
+from .search_utils import DEFAULT_SEARCH_LIMIT
 
 
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     index = InvertedIndex()
-    index.load(PROJECT_ROOT)
+    index.load()
 
     ids = []
     for term in clean(query):
