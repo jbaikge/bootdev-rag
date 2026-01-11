@@ -4,9 +4,15 @@ import os
 import os.path
 import pickle
 
-from .constants import BM25_B, BM25_K1
+from .constants import BM25_B, BM25_K1, DEFAULT_SEARCH_LIMIT
 from .query_utils import clean
 from .search_utils import CACHE_PATH
+
+
+class BM25SearchResult:
+    def __init__(self, movie: dict, score: float):
+        self.movie = movie
+        self.score = score
 
 
 class InvertedIndex:
@@ -57,6 +63,43 @@ class InvertedIndex:
             total += self.doc_lengths[id]
 
         return total / num_docs
+
+    def bm25(self, doc_id: int, term: str) -> float:
+        tf = self.get_bm25_tf(doc_id, term)
+        idf = self.get_bm25_idf(term)
+        return tf * idf
+
+    def bm25_search(
+        self,
+        query: str,
+        limit: int = DEFAULT_SEARCH_LIMIT,
+    ) -> list[BM25SearchResult]:
+        tokens = clean(query)
+        scores = {}
+
+        for token in tokens:
+            if token not in self.index:
+                continue
+
+            for id in self.index[token]:
+                if id not in scores:
+                    scores[id] = 0
+                scores[id] += self.bm25(id, token)
+
+        ordered = dict(sorted(
+            scores.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        ))
+        results = []
+
+        for id in ordered:
+            if len(results) >= limit:
+                break
+
+            results.append(BM25SearchResult(self.docmap[id], ordered[id]))
+
+        return results
 
     def get_documents(self, term: str) -> list[int]:
         """

@@ -4,13 +4,16 @@ import argparse
 import json
 
 from lib.constants import BM25_B, BM25_K1
-from lib.keyword_search import search_command
-from lib.idf_search import idf_command
-from lib.index_builder import build_command
-from lib.term_search import term_command
-from lib.tfidf_search import tfidf_command
-from lib.bm25idf_search import bm25idf_command
-from lib.bm25tf_search import bm25_tf_command
+from lib.commands import (
+    search_command,
+    idf_command,
+    build_command,
+    term_command,
+    tfidf_command,
+    bm25idf_command,
+    bm25_tf_command,
+    bm25_search_command,
+)
 
 
 def title_search(query: str) -> list:
@@ -125,12 +128,36 @@ def main() -> None:
         help="Tunable BM25 B parameter",
     )
 
+    bm25search_parser = subparsers.add_parser(
+        "bm25search",
+        help="Search movies using full BM25 scoring",
+    )
+    bm25search_parser.add_argument(
+        "query",
+        type=str,
+        help="Search query",
+    )
+    bm25search_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Maximum number of results to return",
+    )
+
     args = parser.parse_args()
 
     match args.command:
         case "bm25idf":
             bm25idf = bm25idf_command(args.term)
             print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
+        case "bm25search":
+            results = bm25_search_command(args.query, args.limit)
+            for i, result in enumerate(results, 1):
+                print(
+                    "%d. (%d) %s - Score: %0.2f" %
+                    (i, result.movie["id"],
+                     result.movie["title"], result.score)
+                )
         case "bm25tf":
             bm25tf = bm25_tf_command(args.doc_id, args.term, args.k1, args.b)
             print(
