@@ -1,3 +1,4 @@
+import re
 import string
 
 from nltk.stem import PorterStemmer
@@ -19,7 +20,7 @@ def lower(s: str) -> str:
 
 
 def whitespace(s: str) -> str:
-    return s.translate(whitespace_table)
+    return re.sub(r"  +", " ", s.translate(whitespace_table))
 
 
 def depunct(s: str) -> str:
