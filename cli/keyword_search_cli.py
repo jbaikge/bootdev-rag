@@ -4,7 +4,7 @@ import argparse
 import json
 
 from lib.constants import BM25_B, BM25_K1
-from lib.commands import (
+from lib.index_commands import (
     search_command,
     idf_command,
     build_command,
