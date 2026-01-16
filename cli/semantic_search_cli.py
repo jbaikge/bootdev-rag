@@ -3,7 +3,8 @@
 import argparse
 
 from lib.semantic_commands import (
-    verify_command
+    embed_command,
+    verify_command,
 )
 
 
@@ -15,6 +16,16 @@ def main():
         help="Available commands",
     )
 
+    embed_parser = subparsers.add_parser(
+        "embed_text",
+        help="Generate text embeddings",
+    )
+    embed_parser.add_argument(
+        "text",
+        type=str,
+        help="Text to get embeddings for",
+    )
+
     subparsers.add_parser(
         "verify",
         help="Verify semantic search model",
@@ -23,6 +34,8 @@ def main():
     args = parser.parse_args()
 
     match args.command:
+        case "embed_text":
+            embed_command(args.text)
         case "verify":
             verify_command()
         case _:
