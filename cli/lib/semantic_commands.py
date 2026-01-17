@@ -1,3 +1,4 @@
+from .search_utils import load_movies
 from .semantic_search import SemanticSearch
 
 
@@ -13,3 +14,14 @@ def embed_command(text: str):
     print(f"Text: {text}")
     print(f"First 3 dimensions: {embedding[:3]}")
     print(f"Dimensions: {embedding.shape[0]}")
+
+
+def verify_embeddings_command():
+    movies = load_movies()
+    search = SemanticSearch()
+    embeddings = search.load_or_create_embeddings(movies)
+    print(f"Number of docs:   {len(movies)}")
+    print(
+        "Embeddings shape: %d vectors in %d dimensions" %
+        (embeddings.shape[0], embeddings.shape[1])
+    )
