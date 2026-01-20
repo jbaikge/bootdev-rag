@@ -24,6 +24,15 @@ def embedquery_command(text: str):
     print(f"Shape: {embedding.shape}")
 
 
+def search_command(query: str, limit: int):
+    movies = load_movies()
+    search = SemanticSearch()
+    search.load_or_create_embeddings(movies)
+    for i, result in enumerate(search.search(query, limit), 1):
+        print(f"{i}. {result['title']}")
+        print(f"   {result["description"]}")
+
+
 def verify_embeddings_command():
     movies = load_movies()
     search = SemanticSearch()

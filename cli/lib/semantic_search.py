@@ -2,6 +2,8 @@ import numpy as np
 import os.path
 
 from sentence_transformers import SentenceTransformer
+
+from .query_utils import cosine_similarity
 from .search_utils import CACHE_PATH
 
 
@@ -47,3 +49,29 @@ class SemanticSearch:
                 return self.embeddings
 
         return self.build_embeddings(documents)
+
+    def search(self, query: str, limit: int) -> list[dict]:
+        if self.embeddings is None:
+            raise ValueError(
+                "No embeddings loaded. Call `load_or_create_embeddings` first."
+            )
+
+        q_embedding = self.generate_embedding(query)
+        scores = []
+        for i, embedding in enumerate(self.embeddings):
+            scores.append((
+                cosine_similarity(q_embedding, embedding),
+                self.documents[i],
+            ))
+
+        scores.sort(key=lambda s: s[0], reverse=True)
+
+        results = []
+        for score in scores[:limit]:
+            results.append({
+                "score": score[0],
+                "title": score[1]["title"],
+                "description": score[1]["description"],
+            })
+
+        return results

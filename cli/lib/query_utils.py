@@ -1,6 +1,8 @@
 import re
 import string
 
+import numpy as np
+
 from nltk.stem import PorterStemmer
 
 from .search_utils import load_stopwords
@@ -13,6 +15,17 @@ whitespace_table = str.maketrans(
 )
 stop_words = load_stopwords()
 stemmer = PorterStemmer()
+
+
+def cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+
+    return dot_product / (norm1 * norm2)
 
 
 def lower(s: str) -> str:
