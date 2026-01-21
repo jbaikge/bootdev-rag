@@ -2,6 +2,21 @@ from .search_utils import load_movies
 from .semantic_search import SemanticSearch
 
 
+def chunk_command(text: str, chunk_size: int):
+    words = text.split(" ")
+    chunks = []
+    while len(words) > chunk_size:
+        chunks.append(words[:chunk_size])
+        words = words[chunk_size:]
+
+    if len(words) > 0:
+        chunks.append(words)
+
+    print(f"Chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks, 1):
+        print(f"{i}. {' '.join(chunk)}")
+
+
 def verify_command():
     search = SemanticSearch()
     print(f"Model loaded: {search.model}")

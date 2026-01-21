@@ -3,6 +3,7 @@
 import argparse
 
 from lib.semantic_commands import (
+    chunk_command,
     embed_command,
     embedquery_command,
     search_command,
@@ -65,9 +66,27 @@ def main():
         help="Build and verify embeddings",
     )
 
+    chunk_parser = subparsers.add_parser(
+        "chunk",
+        help="Chunk text",
+    )
+    chunk_parser.add_argument(
+        "text",
+        type=str,
+        help="Text",
+    )
+    chunk_parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=200,
+        help="Maximum number of words per chunk",
+    )
+
     args = parser.parse_args()
 
     match args.command:
+        case "chunk":
+            chunk_command(args.text, args.chunk_size)
         case "embed_text":
             embed_command(args.text)
         case "embedquery":
