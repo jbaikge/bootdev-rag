@@ -2,12 +2,12 @@ from .search_utils import load_movies
 from .semantic_search import SemanticSearch
 
 
-def chunk_command(text: str, chunk_size: int):
+def chunk_command(text: str, chunk_size: int, overlap: int):
     words = text.split(" ")
     chunks = []
     while len(words) > chunk_size:
         chunks.append(words[:chunk_size])
-        words = words[chunk_size:]
+        words = words[chunk_size - overlap:]
 
     if len(words) > 0:
         chunks.append(words)

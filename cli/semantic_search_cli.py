@@ -81,12 +81,18 @@ def main():
         default=200,
         help="Maximum number of words per chunk",
     )
+    chunk_parser.add_argument(
+        "--overlap",
+        type=int,
+        default=0,
+        help="Maximum number of words to overlap in each chunk",
+    )
 
     args = parser.parse_args()
 
     match args.command:
         case "chunk":
-            chunk_command(args.text, args.chunk_size)
+            chunk_command(args.text, args.chunk_size, args.overlap)
         case "embed_text":
             embed_command(args.text)
         case "embedquery":
