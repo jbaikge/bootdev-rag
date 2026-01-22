@@ -4,6 +4,7 @@ import argparse
 
 from lib.semantic_commands import (
     chunk_command,
+    embed_chunks_command,
     embed_command,
     embedquery_command,
     search_command,
@@ -111,11 +112,18 @@ def main():
         help="Maximum number of sentences to overlap in each chunk",
     )
 
+    subparsers.add_parser(
+        "embed_chunks",
+        help="Embed chunks",
+    )
+
     args = parser.parse_args()
 
     match args.command:
         case "chunk":
             chunk_command(args.text, args.chunk_size, args.overlap)
+        case "embed_chunks":
+            embed_chunks_command()
         case "embed_text":
             embed_command(args.text)
         case "embedquery":

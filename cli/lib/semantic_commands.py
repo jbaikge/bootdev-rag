@@ -1,5 +1,6 @@
 import re
 
+from .chunked_semantic_search import ChunkedSemanticSearch
 from .search_utils import load_movies
 from .semantic_search import SemanticSearch
 
@@ -23,6 +24,13 @@ def verify_command():
     search = SemanticSearch()
     print(f"Model loaded: {search.model}")
     print(f"Max sequence length: {search.model.max_seq_length}")
+
+
+def embed_chunks_command():
+    movies = load_movies()
+    css = ChunkedSemanticSearch()
+    embeddings = css.load_or_create_chunk_embeddings(movies)
+    print(f"Generated {len(embeddings)} chunked embeddings")
 
 
 def embed_command(text: str):
