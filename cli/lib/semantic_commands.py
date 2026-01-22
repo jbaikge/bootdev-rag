@@ -1,3 +1,5 @@
+import re
+
 from .search_utils import load_movies
 from .semantic_search import SemanticSearch
 
@@ -46,6 +48,22 @@ def search_command(query: str, limit: int):
     for i, result in enumerate(search.search(query, limit), 1):
         print(f"{i}. {result['title']}")
         print(f"   {result["description"]}")
+
+
+def semantic_chunk_command(text: str, chunk_size: int, overlap: int):
+    re_sentence = r"(?<=[.!?])\s+"
+    sentences = re.split(re_sentence, text)
+    chunks = []
+    while len(sentences) > chunk_size:
+        chunks.append(sentences[:chunk_size])
+        sentences = sentences[chunk_size - overlap:]
+
+    if len(sentences) > 0:
+        chunks.append(sentences)
+
+    print(f"Semantically chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks, 1):
+        print(f"{i}. {' '.join(chunk)}")
 
 
 def verify_embeddings_command():

@@ -7,6 +7,7 @@ from lib.semantic_commands import (
     embed_command,
     embedquery_command,
     search_command,
+    semantic_chunk_command,
     verify_command,
     verify_embeddings_command,
 )
@@ -88,6 +89,28 @@ def main():
         help="Maximum number of words to overlap in each chunk",
     )
 
+    semantic_chunk_parser = subparsers.add_parser(
+        "semantic_chunk",
+        help="Chunk text",
+    )
+    semantic_chunk_parser.add_argument(
+        "text",
+        type=str,
+        help="Text",
+    )
+    semantic_chunk_parser.add_argument(
+        "--max-chunk-size",
+        type=int,
+        default=4,
+        help="Maximum number of sentences per chunk",
+    )
+    semantic_chunk_parser.add_argument(
+        "--overlap",
+        type=int,
+        default=0,
+        help="Maximum number of sentences to overlap in each chunk",
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -99,6 +122,12 @@ def main():
             embedquery_command(args.query)
         case "search":
             search_command(args.query, args.limit)
+        case "semantic_chunk":
+            semantic_chunk_command(
+                args.text,
+                args.max_chunk_size,
+                args.overlap,
+            )
         case "verify":
             verify_command()
         case "verify_embeddings":
