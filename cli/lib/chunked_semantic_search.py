@@ -71,9 +71,27 @@ class ChunkedSemanticSearch(SemanticSearch):
 
         return self.build_chunk_embeddings(documents)
 
-    def semantic_chunk(self, text: str, chunk_size: int, overlap: int) -> list[str]:
+    def semantic_chunk(
+        self,
+        text: str,
+        chunk_size: int,
+        overlap: int,
+    ) -> list[str]:
+        text = text.strip()
+        if text == "":
+            return []
+
         re_sentence = r"(?<=[.!?])\s+"
-        sentences = re.split(re_sentence, text)
+        text_splits = re.split(re_sentence, text)
+
+        # Remove leading and trailing whitespace from sentences
+        sentences = []
+        for s in text_splits:
+            stripped = s.strip()
+            if stripped == "":
+                continue
+            sentences.append(s)
+
         chunks = []
         while len(sentences) > chunk_size:
             chunks.append(sentences[:chunk_size])

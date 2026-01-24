@@ -68,16 +68,8 @@ def search_chunked_command(query: str, limit: int):
 
 
 def semantic_chunk_command(text: str, chunk_size: int, overlap: int):
-    re_sentence = r"(?<=[.!?])\s+"
-    sentences = re.split(re_sentence, text)
-    chunks = []
-    while len(sentences) > chunk_size:
-        chunks.append(sentences[:chunk_size])
-        sentences = sentences[chunk_size - overlap:]
-
-    if len(sentences) > 0:
-        chunks.append(sentences)
-
+    search = ChunkedSemanticSearch()
+    chunks = search.semantic_chunk(text, chunk_size, overlap)
     print(f"Semantically chunking {len(text)} characters")
     for i, chunk in enumerate(chunks, 1):
         print(f"{i}. {' '.join(chunk)}")
