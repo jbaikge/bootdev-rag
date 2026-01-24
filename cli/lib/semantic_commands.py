@@ -58,6 +58,15 @@ def search_command(query: str, limit: int):
         print(f"   {result["description"]}")
 
 
+def search_chunked_command(query: str, limit: int):
+    movies = load_movies()
+    search = ChunkedSemanticSearch()
+    search.load_or_create_chunk_embeddings(movies)
+    for i, result in enumerate(search.search_chunks(query, limit), 1):
+        print(f"\n{i}. {result["title"]} (score: {result["score"]:.4f})")
+        print(f"    {result["document"]}")
+
+
 def semantic_chunk_command(text: str, chunk_size: int, overlap: int):
     re_sentence = r"(?<=[.!?])\s+"
     sentences = re.split(re_sentence, text)

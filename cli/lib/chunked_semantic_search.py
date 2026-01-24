@@ -3,6 +3,8 @@ import numpy as np
 import os.path
 import re
 
+from .constants import SCORE_PRECISION
+from .query_utils import cosine_similarity
 from .search_utils import CACHE_PATH
 from .semantic_search import SemanticSearch
 
@@ -81,3 +83,47 @@ class ChunkedSemanticSearch(SemanticSearch):
             chunks.append(sentences)
 
         return chunks
+
+    def search_chunks(self, query: str, limit: int = 10) -> list[dict]:
+        if self.chunk_embeddings is None:
+            raise ValueError(
+                "not initialized, did you call load_or_create_chunk_embeddings"
+            )
+
+        query_embedding = self.generate_embedding(query)
+        scores = []
+        for i, embedding in enumerate(self.chunk_embeddings):
+            scores.append({
+                "chunk_idx": self.chunk_metadata[i]["chunk_idx"],
+                "movie_idx": self.chunk_metadata[i]["movie_idx"],
+                "score": cosine_similarity(query_embedding, embedding),
+            })
+
+        movie_scores = {}
+        for score in scores:
+            movie_idx = score["movie_idx"]
+            if movie_idx not in movie_scores:
+                movie_scores[movie_idx] = score
+                continue
+
+            if movie_scores[movie_idx]["score"] < score["score"]:
+                movie_scores[movie_idx] = score
+
+        sorted_scores = sorted(
+            movie_scores.values(),
+            key=lambda item: item["score"],
+            reverse=True,
+        )
+
+        results = []
+        for score in sorted_scores[:limit]:
+            doc = self.documents[score["movie_idx"]]
+            results.append({
+                "id": doc["id"],
+                "title": doc["title"],
+                "document": doc["description"][:100],
+                "score": round(score["score"], SCORE_PRECISION),
+                "metadata": score or {},
+            })
+
+        return results

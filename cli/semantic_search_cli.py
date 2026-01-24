@@ -8,6 +8,7 @@ from lib.semantic_commands import (
     embed_command,
     embedquery_command,
     search_command,
+    search_chunked_command,
     semantic_chunk_command,
     verify_command,
     verify_embeddings_command,
@@ -117,6 +118,21 @@ def main():
         help="Embed chunks",
     )
 
+    search_chunked_parser = subparsers.add_parser(
+        "search_chunked",
+        help="Perform a chunked semantic search",
+    )
+    search_chunked_parser.add_argument(
+        "query",
+        help="Search query",
+    )
+    search_chunked_parser.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Max number of results to return",
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -130,6 +146,8 @@ def main():
             embedquery_command(args.query)
         case "search":
             search_command(args.query, args.limit)
+        case "search_chunked":
+            search_chunked_command(args.query, args.limit)
         case "semantic_chunk":
             semantic_chunk_command(
                 args.text,
