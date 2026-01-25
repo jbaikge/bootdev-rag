@@ -13,6 +13,7 @@ class BM25SearchResult:
     def __init__(self, movie: dict, score: float):
         self.movie = movie
         self.score = score
+        self.normal_score = None
 
 
 class InvertedIndex:
