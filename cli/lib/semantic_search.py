@@ -7,6 +7,14 @@ from .query_utils import cosine_similarity
 from .search_utils import CACHE_PATH
 
 
+class SemanticResult:
+    def __init__(self, score: float, title: str, desc: str):
+        self.score = score
+        self.title = title
+        self.description = desc
+        self.normal_score = None
+
+
 class SemanticSearch:
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         self.model = SentenceTransformer(model_name)
@@ -50,7 +58,7 @@ class SemanticSearch:
 
         return self.build_embeddings(documents)
 
-    def search(self, query: str, limit: int) -> list[dict]:
+    def search(self, query: str, limit: int) -> list[SemanticResult]:
         if self.embeddings is None:
             raise ValueError(
                 "No embeddings loaded. Call `load_or_create_embeddings` first."
@@ -68,10 +76,10 @@ class SemanticSearch:
 
         results = []
         for score in scores[:limit]:
-            results.append({
-                "score": score[0],
-                "title": score[1]["title"],
-                "description": score[1]["description"],
-            })
+            results.append(SemanticResult(
+                score[0],
+                score[1]["title"],
+                score[1]["description"],
+            ))
 
         return results
