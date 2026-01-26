@@ -31,10 +31,10 @@ class InvertedIndex:
         # Dictionary mapping document IDs to Counter objects
         self.term_frequencies = {}
 
-        self.index_file = "index.pkl"
-        self.docmap_file = "docmap.pkl"
-        self.term_freq_file = "term_frequencies.pkl"
-        self.doc_lengths_file = "doc_lengths.pkl"
+        self.index_file = os.path.join(CACHE_PATH, "index.pkl")
+        self.docmap_file = os.path.join(CACHE_PATH, "docmap.pkl")
+        self.term_freq_file = os.path.join(CACHE_PATH, "term_frequencies.pkl")
+        self.doc_lengths_file = os.path.join(CACHE_PATH, "doc_lengths.pkl")
 
     def __add_document(self, doc_id: int, text: str) -> None:
         """
@@ -211,38 +211,38 @@ class InvertedIndex:
             self.__add_document(m["id"], text)
             self.docmap[m["id"]] = m
 
-    def save(self, dir: str = CACHE_PATH) -> None:
+    def save(self) -> None:
         """
         Saves the index and the docmap to a cache directory inside of root_dir
         in pickle format.
         """
 
-        os.makedirs(dir, exist_ok=True)
+        os.makedirs(CACHE_PATH, exist_ok=True)
 
-        with open(os.path.join(dir, self.index_file), "wb") as f:
+        with open(self.index_file, "wb") as f:
             pickle.dump(self.index, f)
 
-        with open(os.path.join(dir, self.docmap_file), "wb") as f:
+        with open(self.docmap_file, "wb") as f:
             pickle.dump(self.docmap, f)
 
-        with open(os.path.join(dir, self.term_freq_file), "wb") as f:
+        with open(self.term_freq_file, "wb") as f:
             pickle.dump(self.term_frequencies, f)
 
-        with open(os.path.join(dir, self.doc_lengths_file), "wb") as f:
+        with open(self.doc_lengths_file, "wb") as f:
             pickle.dump(self.doc_lengths, f)
 
-    def load(self, dir: str = CACHE_PATH) -> None:
-        if not os.path.exists(dir):
+    def load(self) -> None:
+        if not os.path.exists(CACHE_PATH):
             raise RuntimeError(f"cache dir does not exist: {dir}")
 
-        with open(os.path.join(dir, self.index_file), "rb") as f:
+        with open(self.index_file, "rb") as f:
             self.index = pickle.load(f)
 
-        with open(os.path.join(dir, self.docmap_file), "rb") as f:
+        with open(self.docmap_file, "rb") as f:
             self.docmap = pickle.load(f)
 
-        with open(os.path.join(dir, self.term_freq_file), "rb") as f:
+        with open(self.term_freq_file, "rb") as f:
             self.term_frequencies = pickle.load(f)
 
-        with open(os.path.join(dir, self.doc_lengths_file), "rb") as f:
+        with open(self.doc_lengths_file, "rb") as f:
             self.doc_lengths = pickle.load(f)

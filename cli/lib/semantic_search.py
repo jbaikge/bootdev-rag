@@ -8,7 +8,8 @@ from .search_utils import CACHE_PATH
 
 
 class SemanticResult:
-    def __init__(self, score: float, title: str, desc: str):
+    def __init__(self, id: int, title: str, desc: str, score: float):
+        self.doc_id = id
         self.score = score
         self.title = title
         self.description = desc
@@ -21,7 +22,7 @@ class SemanticSearch:
         self.embeddings = None
         self.documents = None
         self.document_map = {}
-        self.embeddings_path = f"{CACHE_PATH}/movie_embeddings.npy"
+        self.embeddings_path = os.path.join(CACHE_PATH, "movie_embeddings.npy")
 
     def generate_embedding(self, text: str):
         if text.strip() == "":
@@ -77,9 +78,10 @@ class SemanticSearch:
         results = []
         for score in scores[:limit]:
             results.append(SemanticResult(
-                score[0],
+                score[1]["id"],
                 score[1]["title"],
                 score[1]["description"],
+                score[0],
             ))
 
         return results

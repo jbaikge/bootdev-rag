@@ -9,6 +9,15 @@ from .search_utils import CACHE_PATH
 from .semantic_search import SemanticSearch
 
 
+class ChunkedResult:
+    def __init__(self, id: int, title: str, desc: str, score: float, metadata: dict):
+        self.doc_id = id
+        self.title = title
+        self.description = desc
+        self.score = score
+        self.metadata = metadata
+
+
 class ChunkedSemanticSearch(SemanticSearch):
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         super().__init__(model_name)
@@ -102,7 +111,7 @@ class ChunkedSemanticSearch(SemanticSearch):
 
         return chunks
 
-    def search_chunks(self, query: str, limit: int = 10) -> list[dict]:
+    def search_chunks(self, query: str, limit: int = 10) -> list[ChunkedResult]:
         if self.chunk_embeddings is None:
             raise ValueError(
                 "not initialized, did you call load_or_create_chunk_embeddings"
@@ -136,12 +145,12 @@ class ChunkedSemanticSearch(SemanticSearch):
         results = []
         for score in sorted_scores[:limit]:
             doc = self.documents[score["movie_idx"]]
-            results.append({
-                "id": doc["id"],
-                "title": doc["title"],
-                "document": doc["description"][:100],
-                "score": round(score["score"], SCORE_PRECISION),
-                "metadata": score or {},
-            })
+            results.append(ChunkedResult(
+                doc["id"],
+                doc["title"],
+                doc["description"][:100],
+                score["score"],
+                score or {},
+            ))
 
         return results
