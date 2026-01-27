@@ -6,6 +6,10 @@ def hybrid_score(
     return alpha * bm25_score + (1 - alpha) * semantic_score
 
 
+def rrf_score(rank: int, k: int = 60) -> float:
+    return 1 / (k + rank)
+
+
 def normalize(scores: list[float]) -> list[float]:
     if len(scores) == 0:
         return

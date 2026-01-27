@@ -2,6 +2,7 @@ import argparse
 
 from lib.hybrid_commands import (
     normalize_command,
+    rrf_search_command,
     weighted_search_command,
 )
 
@@ -46,11 +47,35 @@ def main() -> None:
         help="Limit number of results",
     )
 
+    rrf_parser = subparsers.add_parser(
+        "rrf-search",
+        help="Reciprocal Rank Fusion search",
+    )
+    rrf_parser.add_argument(
+        "query",
+        type=str,
+        help="Search query",
+    )
+    rrf_parser.add_argument(
+        "-k",
+        type=int,
+        default=60,
+        help="K constant",
+    )
+    rrf_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Limit number of results",
+    )
+
     args = parser.parse_args()
 
     match args.command:
         case "normalize":
             normalize_command(args.scores)
+        case "rrf-search":
+            rrf_search_command(args.query, args.k, args.limit)
         case "weighted-search":
             weighted_search_command(args.query, args.alpha, args.limit)
         case _:
