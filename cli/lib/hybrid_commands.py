@@ -1,6 +1,14 @@
+import os
+
+from dotenv import load_dotenv
+from google import genai
+
 from .hybrid_search import HybridSearch
 from .hybrid_utils import normalize
 from .search_utils import load_movies
+
+
+model = "gemini-2.5-flash"
 
 
 def normalize_command(scores: list[float]) -> None:
@@ -8,7 +16,30 @@ def normalize_command(scores: list[float]) -> None:
         print(f"* {score:.4f}")
 
 
-def rrf_search_command(query: str, k: int, limit: int) -> None:
+def rrf_search_command(query: str, k: int, limit: int, enhance: str) -> None:
+    if enhance == "spell":
+        load_dotenv()
+        api_key = os.environ.get("GEMINI_API_KEY")
+        client = genai.Client(api_key=api_key)
+        contents = f"""
+        Fix any spelling errors in this movie search query.
+
+        Only correct obvious typos. Don't change correctly spelled words.
+
+        Query: "{query}"
+
+        If no errors, return the original query.
+
+        Corrected:"""
+
+        response = client.models.generate_content(
+            model=model,
+            contents=contents,
+        )
+        print(f"Enhanced query ({enhance}): '{
+              query}' -> '{response.text}'\n")
+        query = response.text
+
     movies = load_movies()
     search = HybridSearch(movies)
     for i, result in enumerate(search.rrf_search(query, k, limit), 1):
