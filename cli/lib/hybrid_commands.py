@@ -22,6 +22,23 @@ def rrf_search_command(query: str, k: int, limit: int, enhance: str) -> None:
     client = genai.Client(api_key=api_key)
 
     contents = None
+    if enhance == "expand":
+        contents = f"""
+        Expand this movie search query with related terms.
+
+        Add synonyms and related concepts that might appear in movie descriptions.
+        Keep expansions relevant and focused.
+        This will be appended to the original query.
+
+        Examples:
+
+        - "scary bear movie" -> "scary horror grizzly bear movie terrifying film"
+        - "action movie with bear" -> "action thriller bear chase fight adventure"
+        - "comedy with bear" -> "comedy funny bear humor lighthearted"
+
+        Query: "{query}"
+        """
+
     if enhance == "rewrite":
         contents = f"""
         Rewrite this movie search query to be more specific and searchable.

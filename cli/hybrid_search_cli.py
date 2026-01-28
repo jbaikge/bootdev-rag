@@ -71,7 +71,7 @@ def main() -> None:
     rrf_parser.add_argument(
         "--enhance",
         type=str,
-        choices=["rewrite", "spell"],
+        choices=["expand", "rewrite", "spell"],
         help="Query enhancement method",
     )
 
