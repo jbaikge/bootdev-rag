@@ -16,6 +16,7 @@ class RRFResult:
         self.semantic_rank = semantic
         self.rrf_score = 0.0
         self.doc = doc
+        self.rerank_score = 0.0
 
     def calculate_score(self, k: int) -> None:
         if self.bm25_rank > 0:

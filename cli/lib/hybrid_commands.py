@@ -1,7 +1,10 @@
+import json
 import os
+import time
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 from .hybrid_search import HybridSearch
 from .hybrid_utils import normalize
@@ -16,7 +19,13 @@ def normalize_command(scores: list[float]) -> None:
         print(f"* {score:.4f}")
 
 
-def rrf_search_command(query: str, k: int, limit: int, enhance: str) -> None:
+def rrf_search_command(
+    query: str,
+    k: int,
+    limit: int,
+    enhance: str,
+    rerank_method: str,
+) -> None:
     load_dotenv()
     api_key = os.environ.get("GEMINI_API_KEY")
     client = genai.Client(api_key=api_key)
@@ -83,10 +92,78 @@ def rrf_search_command(query: str, k: int, limit: int, enhance: str) -> None:
         )
         query = response.text
 
+    if rerank_method == "individual":
+        original_limit = limit
+        limit = limit * 5
+
     movies = load_movies()
     search = HybridSearch(movies)
-    for i, result in enumerate(search.rrf_search(query, k, limit), 1):
+    results = search.rrf_search(query, k, limit)
+
+    if rerank_method == "individual":
+        for result in results:
+            rerank_contents = f"""
+            Rate how well this movie matches the search query.
+
+            Query: "{query}"
+            Movie: {result.doc.get("title", "")}
+            Description: {result.doc.get("description", "")}
+
+            Consider:
+            - Direct relevance to query
+            - User intent (what they're looking for)
+            - Content appropriateness
+
+            Rate 0-10 (10 = perfect match).
+            Give me ONLY the number in your response, no other text or explanation.
+
+            Score:"""
+
+            response = client.models.generate_content(
+                model=model,
+                contents=rerank_contents,
+                config=types.GenerateContentConfig(
+                    safety_settings=[
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                            threshold=types.HarmBlockThreshold.OFF,
+                        ),
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                            threshold=types.HarmBlockThreshold.OFF,
+                        ),
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                            threshold=types.HarmBlockThreshold.OFF,
+                        ),
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                            threshold=types.HarmBlockThreshold.OFF,
+                        ),
+                    ]
+                )
+            )
+
+            if response.text is None:
+                # Quietly ignore
+                # print("Result:")
+                # print(json.dumps(result.doc))
+                # print("Response:")
+                # print(response)
+                continue
+
+            result.rerank_score = float(response.text)
+            time.sleep(3.5)
+
+        results = sorted(
+            results,
+            key=lambda v: v.rerank_score,
+            reverse=True,
+        )[:original_limit]
+
+    for i, result in enumerate(results, 1):
         print(f"{i}. {result.doc['title']}")
+        print(f"   Rerank Score: {result.rerank_score:.3f}/10")
         print(f"   RRF Score: {result.rrf_score:.3f}")
         print(
             f"   BM25 Rank: {result.bm25_rank},",
