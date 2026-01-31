@@ -92,7 +92,7 @@ def rrf_search_command(
         )
         query = response.text
 
-    if rerank_method == "individual":
+    if rerank_method in ["batch", "individual"]:
         original_limit = limit
         limit = limit * 5
 
@@ -122,26 +122,6 @@ def rrf_search_command(
             response = client.models.generate_content(
                 model=model,
                 contents=rerank_contents,
-                config=types.GenerateContentConfig(
-                    safety_settings=[
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
-                            threshold=types.HarmBlockThreshold.OFF,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                            threshold=types.HarmBlockThreshold.OFF,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                            threshold=types.HarmBlockThreshold.OFF,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                            threshold=types.HarmBlockThreshold.OFF,
-                        ),
-                    ]
-                )
             )
 
             if response.text is None:
@@ -159,6 +139,47 @@ def rrf_search_command(
             results,
             key=lambda v: v.rerank_score,
             reverse=True,
+        )[:original_limit]
+
+    if rerank_method == "batch":
+        doc_list = []
+        for result in results:
+            doc_list.append(result.doc)
+
+        doc_list_str = json.dumps(doc_list)
+        rerank_contents = f"""
+        Rank these movies by relevance to the search query.
+
+        Query: "{query}"
+
+        Movies:
+        {doc_list_str}
+
+        Return ONLY the IDs in order of relevance (best match first). Return a valid JSON list, nothing else, do not wrap in markdown. For example:
+
+        [75, 12, 34, 2, 1]
+        """
+
+        response = client.models.generate_content(
+            model=model,
+            contents=rerank_contents,
+        )
+
+        if response.text is None:
+            print(f"Failed to get result: {response}")
+            return
+
+        ids = json.loads(response.text)
+        for result in results:
+            try:
+                result.rerank_score = ids.index(result.doc_id) + 1
+            except ValueError:
+                result.rerank_score = 0
+
+        results = sorted(
+            results,
+            key=lambda v: v.rerank_score,
+            reverse=False,
         )[:original_limit]
 
     for i, result in enumerate(results, 1):
