@@ -25,9 +25,11 @@ def default_command(dataset_path: str, limit: int) -> None:
         found_set = set(found)
         intersection = relevant_set.intersection(found_set)
         precision = len(intersection) / len(found)
+        recall = len(intersection) / len(relevant)
 
         print("")
         print(f"- Query: {query}")
         print(f"  - Precision@{limit}: {precision:.4f}")
-        print(f"  - Retrieved: {', '.join(found)}")
-        print(f"  - Relevant: {', '.join(relevant)}")
+        print(f"  - Recall@{limit}: {recall:.4f}")
+        print(f"  - Retrieved {len(found)}: {', '.join(found)}")
+        print(f"  - Relevant {len(relevant)}: {', '.join(relevant)}")
