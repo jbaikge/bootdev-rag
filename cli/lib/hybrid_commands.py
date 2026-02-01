@@ -4,7 +4,7 @@ import time
 
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
+from sentence_transformers import CrossEncoder
 
 from .hybrid_search import HybridSearch
 from .hybrid_utils import normalize
@@ -92,7 +92,7 @@ def rrf_search_command(
         )
         query = response.text
 
-    if rerank_method in ["batch", "individual"]:
+    if rerank_method != "":
         original_limit = limit
         limit = limit * 5
 
@@ -180,6 +180,26 @@ def rrf_search_command(
             results,
             key=lambda v: v.rerank_score,
             reverse=False,
+        )[:original_limit]
+
+    if rerank_method == "cross_encoder":
+        pairs = []
+        for result in results:
+            pairs.append([
+                query,
+                f"{result.doc['title']} {result.doc['description']}",
+            ])
+
+        cross_encoder = CrossEncoder("cross-encoder/ms-marco-TinyBERT-L2-v2")
+        scores = cross_encoder.predict(pairs)
+
+        for i, result in enumerate(results):
+            result.rerank_score = scores[i]
+
+        results = sorted(
+            results,
+            key=lambda v: v.rerank_score,
+            reverse=True,
         )[:original_limit]
 
     for i, result in enumerate(results, 1):
