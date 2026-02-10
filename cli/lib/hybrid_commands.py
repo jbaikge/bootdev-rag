@@ -81,6 +81,8 @@ def rrf_search_command(
 
         Corrected:"""
 
+    print(f"LOG: Original query: {query}")
+
     if contents is not None:
         response = client.models.generate_content(
             model=model,
@@ -92,6 +94,8 @@ def rrf_search_command(
         )
         query = response.text
 
+    print(f"LOG: Updated  query: {query}")
+
     if rerank_method != "":
         original_limit = limit
         limit = limit * 5
@@ -99,6 +103,10 @@ def rrf_search_command(
     movies = load_movies()
     search = HybridSearch(movies)
     results = search.rrf_search(query, k, limit)
+
+    print("LOG: search.rrf_search results")
+    for result in results:
+        print(f"     {result.doc_id} - {result.doc["title"]}")
 
     if rerank_method == "individual":
         for result in results:
@@ -201,6 +209,10 @@ def rrf_search_command(
             key=lambda v: v.rerank_score,
             reverse=True,
         )[:original_limit]
+
+    print("LOG: re-ranked results")
+    for result in results:
+        print(f"     {result.doc_id} - {result.doc["title"]}")
 
     for i, result in enumerate(results, 1):
         print(f"{i}. {result.doc['title']}")
